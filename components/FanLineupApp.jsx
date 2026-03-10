@@ -50,20 +50,74 @@ const TEAM_CONFIG = {
   },
 };
 
-// ─── FORMATION 4-2-3-1 ───────────────────────────────────────────────────────
-const FORMATION = [
-  { slot: "GK",   label: "GK",  row: 1, col: 3 },
-  { slot: "RB",   label: "RB",  row: 2, col: 5 },
-  { slot: "CB1",  label: "CB",  row: 2, col: 4 },
-  { slot: "CB2",  label: "CB",  row: 2, col: 2 },
-  { slot: "LB",   label: "LB",  row: 2, col: 1 },
-  { slot: "CDM1", label: "CDM", row: 3, col: 4 },
-  { slot: "CDM2", label: "CDM", row: 3, col: 2 },
-  { slot: "RW",   label: "RW",  row: 4, col: 5 },
-  { slot: "CAM",  label: "CAM", row: 4, col: 3 },
-  { slot: "LW",   label: "LW",  row: 4, col: 1 },
-  { slot: "ST",   label: "ST",  row: 5, col: 3 },
-];
+// ─── TÜM DİZİLİŞLER ──────────────────────────────────────────────────────────
+const FORMATIONS = {
+  "4-2-3-1": [
+    { slot:"GK",   label:"GK",  row:1, col:3 },
+    { slot:"RB",   label:"RB",  row:2, col:5 },
+    { slot:"CB1",  label:"CB",  row:2, col:4 },
+    { slot:"CB2",  label:"CB",  row:2, col:2 },
+    { slot:"LB",   label:"LB",  row:2, col:1 },
+    { slot:"CDM1", label:"CDM", row:3, col:4 },
+    { slot:"CDM2", label:"CDM", row:3, col:2 },
+    { slot:"RW",   label:"RW",  row:4, col:5 },
+    { slot:"CAM",  label:"CAM", row:4, col:3 },
+    { slot:"LW",   label:"LW",  row:4, col:1 },
+    { slot:"ST",   label:"ST",  row:5, col:3 },
+  ],
+  "4-3-3": [
+    { slot:"GK",  label:"GK", row:1, col:3 },
+    { slot:"RB",  label:"RB", row:2, col:5 },
+    { slot:"CB1", label:"CB", row:2, col:4 },
+    { slot:"CB2", label:"CB", row:2, col:2 },
+    { slot:"LB",  label:"LB", row:2, col:1 },
+    { slot:"CM1", label:"CM", row:3, col:5 },
+    { slot:"CM2", label:"CM", row:3, col:3 },
+    { slot:"CM3", label:"CM", row:3, col:1 },
+    { slot:"RW",  label:"RW", row:5, col:5 },
+    { slot:"ST",  label:"ST", row:5, col:3 },
+    { slot:"LW",  label:"LW", row:5, col:1 },
+  ],
+  "4-4-2": [
+    { slot:"GK",  label:"GK", row:1, col:3 },
+    { slot:"RB",  label:"RB", row:2, col:5 },
+    { slot:"CB1", label:"CB", row:2, col:4 },
+    { slot:"CB2", label:"CB", row:2, col:2 },
+    { slot:"LB",  label:"LB", row:2, col:1 },
+    { slot:"RM",  label:"RM", row:3, col:5 },
+    { slot:"CM1", label:"CM", row:3, col:4 },
+    { slot:"CM2", label:"CM", row:3, col:2 },
+    { slot:"LM",  label:"LM", row:3, col:1 },
+    { slot:"ST1", label:"ST", row:5, col:4 },
+    { slot:"ST2", label:"ST", row:5, col:2 },
+  ],
+  "3-5-2": [
+    { slot:"GK",   label:"GK",  row:1, col:3 },
+    { slot:"CB1",  label:"CB",  row:2, col:4 },
+    { slot:"CB2",  label:"CB",  row:2, col:3 },
+    { slot:"CB3",  label:"CB",  row:2, col:2 },
+    { slot:"WBR",  label:"WB",  row:3, col:5 },
+    { slot:"CM1",  label:"CM",  row:3, col:4 },
+    { slot:"CM2",  label:"CM",  row:3, col:3 },
+    { slot:"CM3",  label:"CM",  row:3, col:2 },
+    { slot:"WBL",  label:"WB",  row:3, col:1 },
+    { slot:"ST1",  label:"ST",  row:5, col:4 },
+    { slot:"ST2",  label:"ST",  row:5, col:2 },
+  ],
+  "5-3-2": [
+    { slot:"GK",   label:"GK",  row:1, col:3 },
+    { slot:"RWB",  label:"WB",  row:2, col:5 },
+    { slot:"CB1",  label:"CB",  row:2, col:4 },
+    { slot:"CB2",  label:"CB",  row:2, col:3 },
+    { slot:"CB3",  label:"CB",  row:2, col:2 },
+    { slot:"LWB",  label:"WB",  row:2, col:1 },
+    { slot:"CM1",  label:"CM",  row:3, col:4 },
+    { slot:"CM2",  label:"CM",  row:3, col:3 },
+    { slot:"CM3",  label:"CM",  row:3, col:2 },
+    { slot:"ST1",  label:"ST",  row:5, col:4 },
+    { slot:"ST2",  label:"ST",  row:5, col:2 },
+  ],
+};
 
 function getPositionKey(apiPosition) {
   const map = {
@@ -77,17 +131,15 @@ function getPositionKey(apiPosition) {
 
 function getCandidatesForSlot(players, slot) {
   const slotMap = {
-    GK:   ["GK"],
-    RB:   ["CB"],
-    CB1:  ["CB"],
-    CB2:  ["CB"],
-    LB:   ["CB"],
-    CDM1: ["CM"],
-    CDM2: ["CM"],
-    RW:   ["ST", "CM"],
-    CAM:  ["CM"],
-    LW:   ["ST", "CM"],
-    ST:   ["ST"],
+    GK:  ["GK"],
+    RB:  ["CB"], LB: ["CB"], CB1: ["CB"], CB2: ["CB"], CB3: ["CB"],
+    RWB: ["CB"], LWB: ["CB"], WBR: ["CB"], WBL: ["CB"],
+    CDM1:["CM"], CDM2:["CM"],
+    CM1: ["CM"], CM2: ["CM"], CM3: ["CM"],
+    RM:  ["CM"], LM: ["CM"],
+    RW:  ["ST","CM"], LW: ["ST","CM"],
+    CAM: ["CM"],
+    ST:  ["ST"], ST1:["ST"], ST2:["ST"],
   };
   const allowed = slotMap[slot] || [];
   return players.filter(p => allowed.includes(p.positionKey));
@@ -161,7 +213,7 @@ const VoteStore = {
       const stored = localStorage.getItem('demo_' + teamKey);
       if (stored) { this.votes[teamKey] = JSON.parse(stored); return; }
     } catch {}
-    FORMATION.forEach(pos => {
+    FORMATIONS["4-2-3-1"].forEach(pos => {
       const candidates = getCandidatesForSlot(players, pos.slot).filter(p => !p.injured && !p.suspended);
       if (!candidates.length) return;
       if (!this.votes[teamKey][pos.slot]) this.votes[teamKey][pos.slot] = {};
@@ -180,10 +232,10 @@ const CSS = `
 body{font-family:'DM Sans',sans-serif;background:#08090d;color:#fff;}
 .app{min-height:100vh;}
 .home{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:#0c0c0e;}
-.home-eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:5px;text-transform:uppercase;color:rgba(255,255,255,.25);margin-bottom:24px;text-align:center;}
+.home-eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:5px;color:rgba(255,255,255,.25);margin-bottom:24px;text-align:center;}
 .home-title{font-family:'Bebas Neue',cursive;font-size:clamp(64px,12vw,120px);letter-spacing:2px;text-align:center;line-height:.9;color:#fff;margin-bottom:6px;}
 .home-title span{color:rgba(255,255,255,.15);}
-.home-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:64px;text-align:center;}
+.home-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:64px;text-align:center;}
 .team-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;max-width:640px;width:100%;border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden;}
 @media(max-width:480px){.team-grid{grid-template-columns:1fr;}}
 .team-card{position:relative;cursor:pointer;padding:28px 24px;display:flex;align-items:center;justify-content:space-between;background:#111114;transition:background .2s;}
@@ -192,7 +244,7 @@ body{font-family:'DM Sans',sans-serif;background:#08090d;color:#fff;}
 .team-card:nth-child(odd){border-right:1px solid rgba(255,255,255,.06);}
 .team-card-left{display:flex;align-items:center;gap:14px;}
 .team-card-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.team-card-logo{width:32px;height:32px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));}
+.team-card-logo{width:48px;height:48px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));}
 .team-card-name{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;color:#fff;line-height:1;}
 .team-card-meta{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.3);margin-top:3px;}
 .team-card-arrow{font-size:16px;color:rgba(255,255,255,.15);transition:color .2s,transform .2s;}
@@ -277,6 +329,10 @@ body{font-family:'DM Sans',sans-serif;background:#08090d;color:#fff;}
 .toast.success{border-color:rgba(50,205,100,.4);color:#50dd80;}
 .toast.error{border-color:rgba(220,50,50,.4);color:#ff6b6b;}
 .lock-banner{background:rgba(255,100,0,.1);border:1px solid rgba(255,100,0,.25);border-radius:8px;padding:8px 14px;font-family:'Space Mono',monospace;font-size:11px;color:#ffaa60;text-align:center;margin:0 16px;}
+.formation-picker{display:flex;gap:6px;justify-content:center;padding:0 16px 12px;flex-wrap:wrap;}
+.f-btn{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.35);cursor:pointer;transition:all .15s;}
+.f-btn.active{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.25);}
+.f-btn:hover{color:rgba(255,255,255,.7);}
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px;}
 `;
@@ -294,6 +350,7 @@ export default function FanLineupApp() {
   const [toast, setToast] = useState(null);
   const [countdown, setCountdown] = useState("");
   const [, forceUpdate] = useState(0);
+  const [formation, setFormation] = useState("4-2-3-1");
   const timerRef = useRef(null);
 
   useEffect(() => {
@@ -380,9 +437,9 @@ export default function FanLineupApp() {
     return (
       <div className="app">
         <div className="home">
-          <div className="home-eyebrow">Süper Lig · 2025 / 2026</div>
+          <div className="home-eyebrow">SÜPER LİG · 2025 / 26</div>
           <div className="home-title">Fan<span>/</span>XI</div>
-          <div className="home-sub">Başlangıç 11'İnİ seç · Oy ver</div>
+          <div className="home-sub">BAŞLANGIÇ 11'İNİ SEÇ · OY VER</div>
           <div className="team-grid">
             {Object.entries(TEAM_CONFIG).map(([key, t]) => (
               <div key={key} className="team-card" onClick={() => selectTeam(key)}>
@@ -437,9 +494,16 @@ export default function FanLineupApp() {
         </div>
       )}
 
+      {tab === "vote" && !loading && !error && (
+        <div style={{display:"flex",gap:6,justifyContent:"center",padding:"0 16px 10px",flexWrap:"wrap"}}>
+          {Object.keys(FORMATIONS).map(f => (
+            <button key={f} onClick={() => setFormation(f)} style={{fontFamily:"Space Mono,monospace",fontSize:10,letterSpacing:1,padding:"5px 12px",borderRadius:6,border:formation===f?"1px solid rgba(255,255,255,.3)":"1px solid rgba(255,255,255,.1)",background:formation===f?"rgba(255,255,255,.1)":"transparent",color:formation===f?"#fff":"rgba(255,255,255,.35)",cursor:"pointer"}}>{f}</button>
+          ))}
+        </div>
+      )}
       {!loading && !error && tab === "vote" && (
         <div className="pitch-wrap">
-          <div className="formation-lbl">Diziliş: 4 · 2 · 3 · 1</div>
+          <div className="formation-lbl">{formation}</div>
           {locked && <div className="lock-banner">🔒 Oylama kilitlendi — Maç başladı</div>}
           <div className="pitch">
             <div className="pitch-bg" />
@@ -449,7 +513,7 @@ export default function FanLineupApp() {
             <div className="pitch-pen-t" />
             <div className="pitch-pen-b" />
             <div className="pitch-slots">
-              {FORMATION.map(pos => {
+              {FORMATIONS[formation].map(pos => {
                 const candidates = getCandidatesForSlot(players, pos.slot);
                 const winnerId = VoteStore.getWinner(selectedTeam, pos.slot);
                 const winner = candidates.find(p => String(p.id) === String(winnerId));
@@ -478,7 +542,10 @@ export default function FanLineupApp() {
                             style={{ background: `conic-gradient(${cfg.accent} ${pct * 3.6}deg, transparent ${pct * 3.6}deg)` }}
                           />
                         )}
-                        <span className="slot-initials">
+                        {display?.photo
+                          ? <img src={display.photo} alt={display.name} style={{ width:"100%", height:"100%", objectFit:"cover", position:"relative", zIndex:1, borderRadius:"50%" }} onError={e => { e.target.style.display="none"; e.target.nextSibling.style.display="flex"; }} />
+                          : null}
+                        <span className="slot-initials" style={{ display: display?.photo ? "none" : "flex" }}>
                           {display ? getInitials(display.name) : <span style={{ color: "rgba(255,255,255,.2)", fontSize: 14 }}>+</span>}
                         </span>
                       </div>
@@ -499,9 +566,9 @@ export default function FanLineupApp() {
       {!loading && !error && tab === "results" && (
         <div className="results">
           <div className="results-title">Fan Starting XI</div>
-          <div className="results-sub">{cfg.name} · 4-2-3-1</div>
+          <div className="results-sub">{cfg.name} · {formation}</div>
           <div className="xi-grid">
-            {FORMATION.map(pos => {
+            {FORMATIONS[formation].map(pos => {
               const candidates = getCandidatesForSlot(players, pos.slot);
               const winnerId = VoteStore.getWinner(selectedTeam, pos.slot);
               const winner = candidates.find(p => String(p.id) === String(winnerId));
@@ -593,7 +660,11 @@ function VoteModal({ pos, players, teamKey, cfg, locked, onClose, onVoted }) {
                 className={`player-opt ${unavail ? "disabled" : ""} ${isMe ? "my-vote" : ""} ${isSel && !isMe ? "selected" : ""}`}
                 onClick={() => !unavail && !locked && !userVoteId && setSelected(p.id)}
               >
-                <div className="opt-avatar" style={{ background: cfg.gradient }}>{getInitials(p.name)}</div>
+                <div className="opt-avatar" style={{ background: cfg.gradient, overflow:"hidden", padding:0 }}>
+                  {p.photo
+                    ? <img src={p.photo} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e => { e.target.style.display="none"; e.target.parentNode.innerText=getInitials(p.name); }} />
+                    : getInitials(p.name)}
+                </div>
                 <div className="opt-info">
                   <div className="opt-name">{p.name}</div>
                   <div className="opt-meta">
