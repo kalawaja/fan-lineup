@@ -1,5 +1,5 @@
-import FanLineupApp from '@/components/FanLineupApp'
+import FanLineupApp from "@/components/FanLineupApp";
 
-export default function Home() {
-  return <FanLineupApp />
+export default function Page() {
+  return <FanLineupApp />;
 }

@@ -2,356 +2,254 @@
 
 import { useState, useEffect, useRef } from "react";
 
-// ─── TEAM CONFIG ─────────────────────────────────────────────────────────────
-const TEAM_CONFIG = {
-  besiktas: {
-    id: 549,
-    logo: "https://media.api-sports.io/football/teams/549.png",
-    name: "BEŞİKTAŞ",
-    primary: "#000000",
-    secondary: "#FFFFFF",
-    accent: "#E0E0E0",
-    gradient: "linear-gradient(135deg, #1a1a1a 0%, #000000 100%)",
-    badge: "⚫",
-    leagueId: 203,
-  },
-  fenerbahce: {
-    id: 611,
-    logo: "https://media.api-sports.io/football/teams/611.png",
-    name: "Fenerbahçe",
-    primary: "#003087",
-    secondary: "#FFCB00",
-    accent: "#FFCB00",
-    gradient: "linear-gradient(135deg, #001a4d 0%, #003087 100%)",
-    badge: "🟡",
-    leagueId: 203,
-  },
-  galatasaray: {
-    id: 645,
-    logo: "https://media.api-sports.io/football/teams/645.png",
-    name: "Galatasaray",
-    primary: "#CC0000",
-    secondary: "#FF8C00",
-    accent: "#FF8C00",
-    gradient: "linear-gradient(135deg, #8B0000 0%, #CC0000 100%)",
-    badge: "🔴",
-    leagueId: 203,
-  },
-  trabzonspor: {
-    id: 998,
-    logo: "https://media.api-sports.io/football/teams/998.png",
-    name: "Trabzonspor",
-    primary: "#702082",
-    secondary: "#0057A8",
-    accent: "#00BFFF",
-    gradient: "linear-gradient(135deg, #4a0057 0%, #702082 100%)",
-    badge: "🟣",
-    leagueId: 203,
-  },
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+const BJK = {
+  id: 549,
+  leagueId: 203,
+  logo: "https://media.api-sports.io/football/teams/549.png",
+  accent: "#E0E0E0",
+  gradient: "linear-gradient(135deg, #1a1a1a 0%, #000000 100%)",
 };
 
-// ─── TÜM DİZİLİŞLER ──────────────────────────────────────────────────────────
+// ─── DİZİLİŞLER ──────────────────────────────────────────────────────────────
+// row: 1=GK, 2=DEF, 3=MID1, 4=MID2, 5=FWD — col: 1-5 (ortada 3)
 const FORMATIONS = {
   "4-2-3-1": [
-    { slot:"GK",   label:"GK",  row:1, col:3 },
-    { slot:"RB",   label:"RB",  row:2, col:5 },
-    { slot:"CB1",  label:"CB",  row:2, col:4 },
-    { slot:"CB2",  label:"CB",  row:2, col:2 },
-    { slot:"LB",   label:"LB",  row:2, col:1 },
-    { slot:"CDM1", label:"CDM", row:3, col:4 },
-    { slot:"CDM2", label:"CDM", row:3, col:2 },
-    { slot:"RW",   label:"RW",  row:4, col:5 },
-    { slot:"CAM",  label:"CAM", row:4, col:3 },
-    { slot:"LW",   label:"LW",  row:4, col:1 },
-    { slot:"ST",   label:"ST",  row:5, col:3 },
+    { slot:"GK",   label:"GK",  row:1, col:3, accepts:["GK"] },
+    { slot:"LB",   label:"LB",  row:2, col:1, accepts:["CB"] },
+    { slot:"CB1",  label:"CB",  row:2, col:2, accepts:["CB"] },
+    { slot:"CB2",  label:"CB",  row:2, col:4, accepts:["CB"] },
+    { slot:"RB",   label:"RB",  row:2, col:5, accepts:["CB"] },
+    { slot:"CDM1", label:"CDM", row:3, col:2, accepts:["CM"] },
+    { slot:"CDM2", label:"CDM", row:3, col:4, accepts:["CM"] },
+    { slot:"LW",   label:"LW",  row:4, col:1, accepts:["CM","ST"] },
+    { slot:"CAM",  label:"CAM", row:4, col:3, accepts:["CM"] },
+    { slot:"RW",   label:"RW",  row:4, col:5, accepts:["CM","ST"] },
+    { slot:"ST",   label:"ST",  row:5, col:3, accepts:["ST"] },
   ],
   "4-3-3": [
-    { slot:"GK",  label:"GK", row:1, col:3 },
-    { slot:"RB",  label:"RB", row:2, col:5 },
-    { slot:"CB1", label:"CB", row:2, col:4 },
-    { slot:"CB2", label:"CB", row:2, col:2 },
-    { slot:"LB",  label:"LB", row:2, col:1 },
-    { slot:"CM1", label:"CM", row:3, col:5 },
-    { slot:"CM2", label:"CM", row:3, col:3 },
-    { slot:"CM3", label:"CM", row:3, col:1 },
-    { slot:"RW",  label:"RW", row:5, col:5 },
-    { slot:"ST",  label:"ST", row:5, col:3 },
-    { slot:"LW",  label:"LW", row:5, col:1 },
+    { slot:"GK",  label:"GK", row:1, col:3, accepts:["GK"] },
+    { slot:"LB",  label:"LB", row:2, col:1, accepts:["CB"] },
+    { slot:"CB1", label:"CB", row:2, col:2, accepts:["CB"] },
+    { slot:"CB2", label:"CB", row:2, col:4, accepts:["CB"] },
+    { slot:"RB",  label:"RB", row:2, col:5, accepts:["CB"] },
+    { slot:"CM1", label:"CM", row:3, col:1, accepts:["CM"] },
+    { slot:"CM2", label:"CM", row:3, col:3, accepts:["CM"] },
+    { slot:"CM3", label:"CM", row:3, col:5, accepts:["CM"] },
+    { slot:"LW",  label:"LW", row:5, col:1, accepts:["CM","ST"] },
+    { slot:"ST",  label:"ST", row:5, col:3, accepts:["ST"] },
+    { slot:"RW",  label:"RW", row:5, col:5, accepts:["CM","ST"] },
   ],
   "4-4-2": [
-    { slot:"GK",  label:"GK", row:1, col:3 },
-    { slot:"RB",  label:"RB", row:2, col:5 },
-    { slot:"CB1", label:"CB", row:2, col:4 },
-    { slot:"CB2", label:"CB", row:2, col:2 },
-    { slot:"LB",  label:"LB", row:2, col:1 },
-    { slot:"RM",  label:"RM", row:3, col:5 },
-    { slot:"CM1", label:"CM", row:3, col:4 },
-    { slot:"CM2", label:"CM", row:3, col:2 },
-    { slot:"LM",  label:"LM", row:3, col:1 },
-    { slot:"ST1", label:"ST", row:5, col:4 },
-    { slot:"ST2", label:"ST", row:5, col:2 },
+    { slot:"GK",  label:"GK", row:1, col:3, accepts:["GK"] },
+    { slot:"LB",  label:"LB", row:2, col:1, accepts:["CB"] },
+    { slot:"CB1", label:"CB", row:2, col:2, accepts:["CB"] },
+    { slot:"CB2", label:"CB", row:2, col:4, accepts:["CB"] },
+    { slot:"RB",  label:"RB", row:2, col:5, accepts:["CB"] },
+    { slot:"LM",  label:"LM", row:3, col:1, accepts:["CM"] },
+    { slot:"CM1", label:"CM", row:3, col:2, accepts:["CM"] },
+    { slot:"CM2", label:"CM", row:3, col:4, accepts:["CM"] },
+    { slot:"RM",  label:"RM", row:3, col:5, accepts:["CM"] },
+    { slot:"ST1", label:"ST", row:5, col:2, accepts:["ST"] },
+    { slot:"ST2", label:"ST", row:5, col:4, accepts:["ST"] },
   ],
   "3-5-2": [
-    { slot:"GK",   label:"GK",  row:1, col:3 },
-    { slot:"CB1",  label:"CB",  row:2, col:4 },
-    { slot:"CB2",  label:"CB",  row:2, col:3 },
-    { slot:"CB3",  label:"CB",  row:2, col:2 },
-    { slot:"WBR",  label:"WB",  row:3, col:5 },
-    { slot:"CM1",  label:"CM",  row:3, col:4 },
-    { slot:"CM2",  label:"CM",  row:3, col:3 },
-    { slot:"CM3",  label:"CM",  row:3, col:2 },
-    { slot:"WBL",  label:"WB",  row:3, col:1 },
-    { slot:"ST1",  label:"ST",  row:5, col:4 },
-    { slot:"ST2",  label:"ST",  row:5, col:2 },
+    { slot:"GK",  label:"GK", row:1, col:3, accepts:["GK"] },
+    { slot:"CB1", label:"CB", row:2, col:2, accepts:["CB"] },
+    { slot:"CB2", label:"CB", row:2, col:3, accepts:["CB"] },
+    { slot:"CB3", label:"CB", row:2, col:4, accepts:["CB"] },
+    { slot:"WBL", label:"WB", row:3, col:1, accepts:["CB","CM"] },
+    { slot:"CM1", label:"CM", row:3, col:2, accepts:["CM"] },
+    { slot:"CM2", label:"CM", row:3, col:3, accepts:["CM"] },
+    { slot:"CM3", label:"CM", row:3, col:4, accepts:["CM"] },
+    { slot:"WBR", label:"WB", row:3, col:5, accepts:["CB","CM"] },
+    { slot:"ST1", label:"ST", row:5, col:2, accepts:["ST"] },
+    { slot:"ST2", label:"ST", row:5, col:4, accepts:["ST"] },
   ],
   "5-3-2": [
-    { slot:"GK",   label:"GK",  row:1, col:3 },
-    { slot:"RWB",  label:"WB",  row:2, col:5 },
-    { slot:"CB1",  label:"CB",  row:2, col:4 },
-    { slot:"CB2",  label:"CB",  row:2, col:3 },
-    { slot:"CB3",  label:"CB",  row:2, col:2 },
-    { slot:"LWB",  label:"WB",  row:2, col:1 },
-    { slot:"CM1",  label:"CM",  row:3, col:4 },
-    { slot:"CM2",  label:"CM",  row:3, col:3 },
-    { slot:"CM3",  label:"CM",  row:3, col:2 },
-    { slot:"ST1",  label:"ST",  row:5, col:4 },
-    { slot:"ST2",  label:"ST",  row:5, col:2 },
+    { slot:"GK",  label:"GK", row:1, col:3, accepts:["GK"] },
+    { slot:"LWB", label:"WB", row:2, col:1, accepts:["CB"] },
+    { slot:"CB1", label:"CB", row:2, col:2, accepts:["CB"] },
+    { slot:"CB2", label:"CB", row:2, col:3, accepts:["CB"] },
+    { slot:"CB3", label:"CB", row:2, col:4, accepts:["CB"] },
+    { slot:"RWB", label:"WB", row:2, col:5, accepts:["CB"] },
+    { slot:"CM1", label:"CM", row:3, col:2, accepts:["CM"] },
+    { slot:"CM2", label:"CM", row:3, col:3, accepts:["CM"] },
+    { slot:"CM3", label:"CM", row:3, col:4, accepts:["CM"] },
+    { slot:"ST1", label:"ST", row:5, col:2, accepts:["ST"] },
+    { slot:"ST2", label:"ST", row:5, col:4, accepts:["ST"] },
   ],
 };
 
-function getPositionKey(apiPosition) {
-  const map = {
-    "Goalkeeper": "GK",
-    "Defender": "CB",
-    "Midfielder": "CM",
-    "Attacker": "ST",
-  };
-  return map[apiPosition] || "CM";
+function posKey(p) {
+  const m = { "Goalkeeper":"GK","Defender":"CB","Midfielder":"CM","Attacker":"ST" };
+  return m[p] || "CM";
 }
 
-function getCandidatesForSlot(players, slot) {
-  const slotMap = {
-    GK:  ["GK"],
-    RB:  ["CB"], LB: ["CB"], CB1: ["CB"], CB2: ["CB"], CB3: ["CB"],
-    RWB: ["CB"], LWB: ["CB"], WBR: ["CB"], WBL: ["CB"],
-    CDM1:["CM"], CDM2:["CM"],
-    CM1: ["CM"], CM2: ["CM"], CM3: ["CM"],
-    RM:  ["CM"], LM: ["CM"],
-    RW:  ["ST","CM"], LW: ["ST","CM"],
-    CAM: ["CM"],
-    ST:  ["ST"], ST1:["ST"], ST2:["ST"],
-  };
-  const allowed = slotMap[slot] || [];
-  return players.filter(p => allowed.includes(p.positionKey));
+function initials(name) {
+  const p = name.trim().split(" ");
+  return p.length >= 2 ? p[0][0]+p[p.length-1][0] : name.slice(0,2);
 }
 
-function getInitials(name) {
-  const parts = name.split(" ");
-  if (parts.length >= 2) return parts[0][0] + parts[parts.length - 1][0];
-  return name.slice(0, 2);
+function formatKickoff(date) {
+  const diff = date - Date.now();
+  if (diff <= 0) return "CANLI";
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(mins / 60);
+  const days = Math.floor(hours / 24);
+  if (diff < 3600000) return `${mins}dk`;
+  if (diff < 86400000) return `${hours}s ${mins % 60}dk`;
+  return `${days}g ${hours % 24}s`;
 }
 
-function formatCountdown(kickoff) {
-  const diff = kickoff - Date.now();
-  if (diff <= 0) return "MAÇTA";
-  const h = Math.floor(diff / 3600000);
-  const m = Math.floor((diff % 3600000) / 60000);
-  const s = Math.floor((diff % 60000) / 1000);
-  if (h > 0) return `${h}s ${m}d`;
-  return `${m}d ${s}sn`;
-}
-
-// ─── OY DEPOSU ────────────────────────────────────────────────────────────────
-const VoteStore = {
-  votes: {},
-  userVotes: {},
-
-  init(teamKey) {
-    if (!this.votes[teamKey]) this.votes[teamKey] = {};
-    if (!this.userVotes[teamKey]) {
-      try {
-        const s = sessionStorage.getItem(`uv_${teamKey}`);
-        this.userVotes[teamKey] = s ? JSON.parse(s) : {};
-      } catch { this.userVotes[teamKey] = {}; }
-    }
-  },
-
-  cast(teamKey, slot, playerId) {
-    this.init(teamKey);
-    if (this.userVotes[teamKey][slot]) return false;
-    if (!this.votes[teamKey][slot]) this.votes[teamKey][slot] = {};
-    this.votes[teamKey][slot][playerId] = (this.votes[teamKey][slot][playerId] || 0) + 1;
-    this.userVotes[teamKey][slot] = playerId;
-    try { sessionStorage.setItem(`uv_${teamKey}`, JSON.stringify(this.userVotes[teamKey])); } catch {}
-    return true;
-  },
-
-  getSlotVotes(teamKey, slot) {
-    this.init(teamKey);
-    return this.votes[teamKey]?.[slot] || {};
-  },
-
-  getUserVote(teamKey, slot) {
-    this.init(teamKey);
-    return this.userVotes[teamKey]?.[slot] || null;
-  },
-
-  getTotal(teamKey, slot) {
-    return Object.values(this.getSlotVotes(teamKey, slot)).reduce((a, b) => a + b, 0);
-  },
-
-  getWinner(teamKey, slot) {
-    const v = this.getSlotVotes(teamKey, slot);
-    if (!Object.keys(v).length) return null;
-    return Object.entries(v).sort((a, b) => b[1] - a[1])[0][0];
-  },
-
-  seedDemo(teamKey, players) {
-    this.init(teamKey);
-    if (this.votes[teamKey] && Object.keys(this.votes[teamKey]).length > 0) return;
-    try {
-      const stored = localStorage.getItem('demo_' + teamKey);
-      if (stored) { this.votes[teamKey] = JSON.parse(stored); return; }
-    } catch {}
-    FORMATIONS["4-2-3-1"].forEach(pos => {
-      const candidates = getCandidatesForSlot(players, pos.slot).filter(p => !p.injured && !p.suspended);
-      if (!candidates.length) return;
-      if (!this.votes[teamKey][pos.slot]) this.votes[teamKey][pos.slot] = {};
-      candidates.forEach((p, i) => {
-        this.votes[teamKey][pos.slot][p.id] = Math.max(50, 500 - i * 130);
-      });
-    });
-    try { localStorage.setItem('demo_' + teamKey, JSON.stringify(this.votes[teamKey])); } catch {}
-  },
-};
-
-// ─── CSS ──────────────────────────────────────────────────────────────────────
+// ─── CSS ─────────────────────────────────────────────────────────────────────
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans',sans-serif;background:#08090d;color:#fff;}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:#0a0a0d;color:#fff;}
 .app{min-height:100vh;}
-.home{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:#0c0c0e;}
-.home-eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:5px;color:rgba(255,255,255,.25);margin-bottom:24px;text-align:center;}
-.home-title{font-family:'Bebas Neue',cursive;font-size:clamp(64px,12vw,120px);letter-spacing:2px;text-align:center;line-height:.9;color:#fff;margin-bottom:6px;}
-.home-title span{color:rgba(255,255,255,.15);}
-.home-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:64px;text-align:center;}
+
+/* HOME */
+.home{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;background:#0a0a0d;}
+.home-eyebrow{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:5px;color:rgba(255,255,255,.25);margin-bottom:20px;text-align:center;}
+.home-title{font-family:'Barlow Condensed',sans-serif;font-size:clamp(64px,12vw,120px);font-weight:800;letter-spacing:2px;text-align:center;line-height:.9;color:#fff;margin-bottom:6px;}
+.home-title span{color:rgba(255,255,255,.12);}
+.home-sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;color:rgba(255,255,255,.3);margin-bottom:56px;text-align:center;}
 .team-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;max-width:640px;width:100%;border:1px solid rgba(255,255,255,.06);border-radius:16px;overflow:hidden;}
 @media(max-width:480px){.team-grid{grid-template-columns:1fr;}}
-.team-card{position:relative;cursor:pointer;padding:28px 24px;display:flex;align-items:center;justify-content:space-between;background:#111114;transition:background .2s;}
+.team-card{cursor:pointer;padding:24px 20px;display:flex;align-items:center;justify-content:space-between;background:#111114;transition:background .2s;}
 .team-card:hover{background:#18181c;}
 .team-card+.team-card{border-top:1px solid rgba(255,255,255,.06);}
 .team-card:nth-child(odd){border-right:1px solid rgba(255,255,255,.06);}
-.team-card-left{display:flex;align-items:center;gap:14px;}
-.team-card-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-.team-card-logo{width:48px;height:48px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));}
-.team-card-name{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;color:#fff;line-height:1;}
-.team-card-meta{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.3);margin-top:3px;}
-.team-card-arrow{font-size:16px;color:rgba(255,255,255,.15);transition:color .2s,transform .2s;}
-.team-card:hover .team-card-arrow{color:rgba(255,255,255,.5);transform:translateX(4px);}
-.header{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07);position:sticky;top:0;z-index:100;backdrop-filter:blur(20px);background:rgba(8,9,13,.85);}
-.back-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;transition:background .15s;}
+.tc-left{display:flex;align-items:center;gap:12px;}
+.tc-logo{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));}
+.tc-name{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:1px;color:#fff;}
+.tc-meta{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);margin-top:2px;}
+.tc-arrow{font-size:14px;color:rgba(255,255,255,.15);transition:color .2s,transform .2s;}
+.team-card:hover .tc-arrow{color:rgba(255,255,255,.5);transform:translateX(4px);}
+
+/* HEADER */
+.hdr{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(10,10,13,.9);backdrop-filter:blur(16px);position:sticky;top:0;z-index:50;}
+.back-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#fff;padding:6px 14px;border-radius:7px;cursor:pointer;font-size:13px;transition:background .15s;}
 .back-btn:hover{background:rgba(255,255,255,.12);}
-.header-center h2{font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:2px;text-align:center;}
-.header-center p{font-size:11px;color:rgba(255,255,255,.45);text-align:center;margin-top:1px;}
-.countdown{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:7px 12px;text-align:center;}
-.countdown-val{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;letter-spacing:1px;}
-.countdown-lbl{font-size:8px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:1px;}
-.tabs{display:flex;gap:6px;justify-content:center;padding:14px 16px;}
-.tab{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;padding:7px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);cursor:pointer;transition:all .15s;}
-.tab.active{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2);}
-.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:16px;}
-.spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);border-top-color:rgba(255,255,255,.6);border-radius:50%;animation:spin .8s linear infinite;}
+.hdr-center{text-align:center;}
+.hdr-center h2{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;}
+.hdr-center p{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px;}
+.hdr-logo{width:32px;height:32px;object-fit:contain;}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid rgba(255,255,255,.07);}
+.tab-btn{flex:1;padding:10px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;background:transparent;border:none;color:rgba(255,255,255,.35);cursor:pointer;transition:all .15s;border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tab-btn.active{color:#fff;border-bottom-color:#fff;}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;gap:14px;}
+.spinner{width:36px;height:36px;border:3px solid rgba(255,255,255,.08);border-top-color:rgba(255,255,255,.5);border-radius:50%;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.loading p{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.4);}
-.pitch-wrap{display:flex;flex-direction:column;align-items:center;padding:16px;gap:12px;}
-.formation-lbl{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.35);}
-.pitch{position:relative;width:100%;max-width:520px;aspect-ratio:7/10;border-radius:8px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);}
-.pitch-bg{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#2d7a3a 0px,#2d7a3a 46px,#339944 46px,#339944 92px);}
-.pitch-lines{position:absolute;inset:0;border:3px solid rgba(255,255,255,.3);border-radius:6px;}
-.pitch-mid{position:absolute;left:0;right:0;top:50%;height:2px;background:rgba(255,255,255,.3);}
-.pitch-circle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:76px;height:76px;border:2px solid rgba(255,255,255,.3);border-radius:50%;}
-.pitch-pen-t{position:absolute;left:50%;transform:translateX(-50%);width:52%;height:18%;border:2px solid rgba(255,255,255,.3);top:0;border-top:none;border-radius:0 0 4px 4px;}
-.pitch-pen-b{position:absolute;left:50%;transform:translateX(-50%);width:52%;height:18%;border:2px solid rgba(255,255,255,.3);bottom:0;border-bottom:none;border-radius:4px 4px 0 0;}
-.pitch-slots{position:absolute;inset:0;display:grid;grid-template-rows:repeat(5,1fr);grid-template-columns:repeat(6,1fr);padding:6px;}
-.pitch-slot{display:flex;align-items:center;justify-content:center;cursor:pointer;}
-.slot-bubble{display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .15s;}
-.slot-bubble:hover{transform:scale(1.1);}
-.slot-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;border:2px solid rgba(255,255,255,.25);position:relative;box-shadow:0 3px 10px rgba(0,0,0,.5);overflow:hidden;transition:border-color .2s,box-shadow .2s;}
-.slot-avatar.voted{border-color:#FFD700;box-shadow:0 0 14px rgba(255,215,0,.5);}
-.slot-avatar.has-winner{border-color:rgba(255,255,255,.5);}
-.slot-ring{position:absolute;inset:-2px;border-radius:50%;opacity:.8;}
-.slot-initials{position:relative;z-index:1;font-size:9px;}
-.slot-name{font-size:8px;font-weight:700;text-align:center;max-width:52px;line-height:1.2;text-shadow:0 1px 4px rgba(0,0,0,.9);}
-.slot-pos{font-family:'Space Mono',monospace;font-size:7px;letter-spacing:1px;background:rgba(0,0,0,.5);padding:1px 4px;border-radius:3px;color:rgba(255,255,255,.6);}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:flex-end;justify-content:center;padding:16px;}
-@media(min-width:600px){.overlay{align-items:center;}}
-.modal{background:#131318;border:1px solid rgba(255,255,255,.1);border-radius:20px 20px 14px 14px;width:100%;max-width:440px;max-height:82vh;overflow-y:auto;animation:slideUp .22s ease;}
-@keyframes slideUp{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-.modal-head{padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#131318;border-radius:20px 20px 0 0;z-index:1;}
-.modal-title{font-family:'Bebas Neue',cursive;font-size:22px;letter-spacing:2px;}
-.modal-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
-.modal-close{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:transparent;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
-.modal-body{padding:14px 20px 20px;}
-.player-opt{display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:background .15s,border-color .15s;margin-bottom:8px;}
-.player-opt:hover:not(.disabled):not(.my-vote){background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1);}
-.player-opt.my-vote{border-color:#FFD700;background:rgba(255,215,0,.07);}
-.player-opt.disabled{opacity:.4;cursor:not-allowed;}
-.player-opt.selected{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.07);}
-.opt-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0;border:2px solid rgba(255,255,255,.15);}
-.opt-info{flex:1;min-width:0;}
-.opt-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.opt-meta{display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap;}
-.opt-num{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.4);}
-.badge{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;}
-.badge-inj{background:rgba(220,50,50,.2);color:#ff6b6b;border:1px solid rgba(220,50,50,.3);}
-.badge-sus{background:rgba(255,140,0,.2);color:#ffa500;border:1px solid rgba(255,140,0,.3);}
-.badge-me{font-size:10px;color:#FFD700;}
-.bar-wrap{margin-top:6px;}
-.bar-track{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:2px;transition:width .4s ease;}
-.bar-info{display:flex;justify-content:space-between;margin-bottom:3px;}
-.bar-pct{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.4);}
-.vote-btn{width:100%;padding:13px;border-radius:10px;border:none;font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;cursor:pointer;margin-top:14px;transition:transform .15s,box-shadow .15s;}
-.vote-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4);}
-.vote-btn:disabled{opacity:.35;cursor:not-allowed;}
-.results{padding:24px 16px;max-width:760px;margin:0 auto;}
-.results-title{font-family:'Bebas Neue',cursive;font-size:clamp(32px,6vw,56px);letter-spacing:3px;text-align:center;margin-bottom:4px;}
-.results-sub{text-align:center;color:rgba(255,255,255,.4);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:28px;}
-.xi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;}
-.xi-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:14px;display:flex;align-items:center;gap:10px;}
-.xi-avatar{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:11px;font-weight:700;flex-shrink:0;}
-.xi-pos{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;color:rgba(255,255,255,.4);text-transform:uppercase;}
-.xi-name{font-weight:700;font-size:13px;line-height:1.3;}
-.xi-votes{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.35);margin-top:2px;}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a24;border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:11px 18px;font-size:13px;z-index:999;animation:toastIn .2s ease;white-space:nowrap;}
-@keyframes toastIn{from{transform:translateX(-50%) translateY(14px);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;}}
-.toast.success{border-color:rgba(50,205,100,.4);color:#50dd80;}
-.toast.error{border-color:rgba(220,50,50,.4);color:#ff6b6b;}
-.lock-banner{background:rgba(255,100,0,.1);border:1px solid rgba(255,100,0,.25);border-radius:8px;padding:8px 14px;font-family:'Space Mono',monospace;font-size:11px;color:#ffaa60;text-align:center;margin:0 16px;}
-.formation-picker{display:flex;gap:6px;justify-content:center;padding:0 16px 12px;flex-wrap:wrap;}
-.f-btn{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:1px;padding:5px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.35);cursor:pointer;transition:all .15s;}
+.loading p{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.35);}
+
+/* DRAG-DROP MAIN LAYOUT */
+.builder{display:flex;gap:0;height:calc(100vh - 96px);overflow:hidden;}
+
+/* LEFT: PITCH */
+.pitch-side{flex:1;min-width:0;display:flex;flex-direction:column;padding:10px 8px;gap:8px;border-right:1px solid rgba(255,255,255,.06);}
+.formation-bar{display:flex;gap:4px;flex-wrap:wrap;}
+.f-btn{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:1px;padding:4px 10px;border-radius:5px;border:1px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.35);cursor:pointer;transition:all .15s;}
 .f-btn.active{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.25);}
-.f-btn:hover{color:rgba(255,255,255,.7);}
-::-webkit-scrollbar{width:3px;}
-::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:2px;}
+.pitch{position:relative;width:100%;max-width:320px;margin:0 auto;aspect-ratio:2/3;border-radius:8px;overflow:hidden;background:repeating-linear-gradient(0deg,#2a7336 0px,#2a7336 44px,#317a3d 44px,#317a3d 88px);}
+.pitch-lines{position:absolute;inset:0;border:2px solid rgba(255,255,255,.25);border-radius:8px;pointer-events:none;}
+.pitch-mid{position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,255,255,.25);pointer-events:none;}
+.pitch-circle{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:70px;height:70px;border:1px solid rgba(255,255,255,.25);border-radius:50%;pointer-events:none;}
+.pitch-pen-t{position:absolute;left:50%;transform:translateX(-50%);width:50%;height:17%;border:1px solid rgba(255,255,255,.25);top:0;border-top:none;border-radius:0 0 4px 4px;pointer-events:none;}
+.pitch-pen-b{position:absolute;left:50%;transform:translateX(-50%);width:50%;height:17%;border:1px solid rgba(255,255,255,.25);bottom:0;border-bottom:none;border-radius:4px 4px 0 0;pointer-events:none;}
+.pitch-slots{position:absolute;inset:0;display:grid;grid-template-rows:repeat(5,1fr);grid-template-columns:repeat(5,1fr);padding:4px;}
+.pitch-slot{display:flex;align-items:center;justify-content:center;}
+.slot-drop{width:48px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:8px;border:1px dashed rgba(255,255,255,.2);background:rgba(0,0,0,.15);transition:all .15s;cursor:pointer;}
+.slot-drop.over{border-color:#FFD700;background:rgba(255,215,0,.15);}
+.slot-drop.filled{border:none;background:transparent;}
+.slot-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#1a1a1a,#000);border:2px solid rgba(255,255,255,.3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:8px;font-weight:700;position:relative;box-shadow:0 2px 8px rgba(0,0,0,.5);}
+.slot-avatar img{width:100%;height:100%;object-fit:cover;}
+.slot-label{font-size:7px;font-weight:700;text-align:center;max-width:46px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.9);}
+.slot-pos-tag{font-family:'Space Mono',monospace;font-size:6px;background:rgba(0,0,0,.5);padding:1px 3px;border-radius:3px;color:rgba(255,255,255,.5);}
+.remove-btn{position:absolute;top:-4px;right:-4px;width:14px;height:14px;border-radius:50%;background:#cc2222;border:none;color:#fff;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;z-index:10;}
+
+/* RIGHT: SQUAD LIST */
+.squad-side{width:160px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;}
+.squad-header{padding:8px 10px;font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;color:rgba(255,255,255,.35);border-bottom:1px solid rgba(255,255,255,.06);}
+.squad-list{flex:1;overflow-y:auto;padding:6px;}
+.squad-group{margin-bottom:6px;}
+.squad-group-label{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.25);padding:3px 4px;margin-bottom:3px;}
+.squad-player{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:7px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);cursor:grab;transition:all .15s;margin-bottom:3px;user-select:none;}
+.squad-player:active{cursor:grabbing;opacity:.7;}
+.squad-player.dragging{opacity:.4;}
+.squad-player.unavail{opacity:.3;cursor:not-allowed;}
+.squad-player.placed{opacity:.25;cursor:default;}
+.sp-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1a1a1a,#000);border:1px solid rgba(255,255,255,.15);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:7px;}
+.sp-avatar img{width:100%;height:100%;object-fit:cover;}
+.sp-info{min-width:0;flex:1;}
+.sp-name{font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sp-num{font-family:'Space Mono',monospace;font-size:8px;color:rgba(255,255,255,.3);}
+.sp-badge{font-size:8px;}
+.squad-list::-webkit-scrollbar{width:2px;}
+.squad-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+
+/* FIXTURES TAB */
+.fixtures{padding:16px;}
+.fix-title{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;letter-spacing:2px;margin-bottom:16px;}
+.fix-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
+.fix-card.next{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.07);}
+.fix-teams{display:flex;align-items:center;gap:10px;}
+.fix-team-name{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;}
+.fix-vs{font-family:'Space Mono',monospace;font-size:10px;color:rgba(255,255,255,.3);padding:0 4px;}
+.fix-time{text-align:right;}
+.fix-countdown{font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:#FFD700;}
+.fix-date{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.35);margin-top:2px;}
+.fix-venue{font-size:10px;color:rgba(255,255,255,.3);margin-top:4px;}
+.fix-comp{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:1px;color:rgba(255,255,255,.2);margin-bottom:4px;}
+.fix-next-badge{font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;background:rgba(255,255,255,.1);border-radius:4px;padding:2px 6px;color:rgba(255,255,255,.5);margin-bottom:6px;display:inline-block;}
+
+/* CONFIRM BAR */
+.confirm-bar{padding:10px 12px;border-top:1px solid rgba(255,255,255,.08);background:rgba(10,10,13,.95);}
+.confirm-btn{width:100%;padding:12px;border-radius:10px;border:none;background:#fff;color:#000;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:opacity .15s;}
+.confirm-btn:disabled{opacity:.25;cursor:not-allowed;}
+.confirm-btn:not(:disabled):hover{opacity:.85;}
+.confirm-count{text-align:center;font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);margin-bottom:6px;}
+
+/* RESULTS */
+.results-page{padding:16px;}
+.results-title{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;letter-spacing:2px;margin-bottom:4px;}
+.results-sub{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.3);letter-spacing:2px;margin-bottom:16px;}
+.results-pitch{position:relative;width:100%;max-width:480px;aspect-ratio:7/10;border-radius:8px;overflow:hidden;background:repeating-linear-gradient(0deg,#2a7336 0px,#2a7336 44px,#317a3d 44px,#317a3d 88px);margin:0 auto 16px;}
+.res-slot{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;transform:translate(-50%,-50%);}
+.res-avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1a1a1a,#000);border:2px solid rgba(255,255,255,.4);overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:8px;font-weight:700;}
+.res-avatar img{width:100%;height:100%;object-fit:cover;}
+.res-name{font-size:7px;font-weight:700;text-align:center;max-width:50px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.9);}
+.res-pct{font-family:'Space Mono',monospace;font-size:6px;background:rgba(0,0,0,.6);padding:1px 4px;border-radius:3px;color:#FFD700;}
+.res-empty{border:1px dashed rgba(255,255,255,.15);color:rgba(255,255,255,.2);font-family:'Space Mono',monospace;font-size:6px;}
+.results-vote-again{display:block;margin:0 auto;padding:10px 24px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;cursor:pointer;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a1a22;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 16px;font-size:12px;z-index:999;animation:tin .2s ease;white-space:nowrap;}
+@keyframes tin{from{transform:translateX(-50%) translateY(12px);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;}}
+.toast.ok{border-color:rgba(50,200,80,.4);color:#50dd70;}
+.toast.err{border-color:rgba(220,50,50,.4);color:#ff6b6b;}
 `;
 
-// ─── ANA COMPONENT ────────────────────────────────────────────────────────────
-export default function FanLineupApp() {
+// ─── MAIN APP ─────────────────────────────────────────────────────────────────
+export default function App() {
   const [page, setPage] = useState("home");
-  const [selectedTeam, setSelectedTeam] = useState(null);
-  const [tab, setTab] = useState("vote");
+  const [tab, setTab] = useState("builder");
   const [players, setPlayers] = useState([]);
-  const [nextMatch, setNextMatch] = useState(null);
+  const [fixtures, setFixtures] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [modal, setModal] = useState(null);
-  const [toast, setToast] = useState(null);
-  const [countdown, setCountdown] = useState("");
-  const [, forceUpdate] = useState(0);
   const [formation, setFormation] = useState("4-2-3-1");
-  const timerRef = useRef(null);
+  const [lineup, setLineup] = useState({});
+  const [dragPlayer, setDragPlayer] = useState(null);
+  const [overSlot, setOverSlot] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [, tick] = useState(0);
+  const [hasVoted, setHasVoted] = useState(false);
+  const [globalVotes, setGlobalVotes] = useState({});
 
   useEffect(() => {
     const s = document.createElement("style");
@@ -360,97 +258,152 @@ export default function FanLineupApp() {
     return () => s.remove();
   }, []);
 
+  // Countdown tick
   useEffect(() => {
-    if (!nextMatch) return;
-    const tick = () => setCountdown(formatCountdown(nextMatch.kickoff));
-    tick();
-    timerRef.current = setInterval(tick, 1000);
-    return () => clearInterval(timerRef.current);
-  }, [nextMatch]);
+    const t = setInterval(() => tick(n => n+1), 30000);
+    return () => clearInterval(t);
+  }, []);
 
-  async function loadTeamData(teamKey) {
+  async function loadData() {
     setLoading(true);
-    setError(null);
-    const cfg = TEAM_CONFIG[teamKey];
-
     try {
-      const [squadRes, injuryRes, fixtureRes] = await Promise.all([
-        fetch(`/api/squad?team=${cfg.id}`),
-        fetch(`/api/injuries?team=${cfg.id}&league=${cfg.leagueId}`),
-        fetch(`/api/fixture?team=${cfg.id}`),
+      const [sRes, iRes, fRes] = await Promise.all([
+        fetch(`/api/squad?team=${BJK.id}`),
+        fetch(`/api/injuries?team=${BJK.id}&league=${BJK.leagueId}`),
+        fetch(`/api/fixtures?team=${BJK.id}`),
       ]);
+      const sData = await sRes.json();
+      const iData = await iRes.json();
+      const fData = await fRes.json();
 
-      const squadData = await squadRes.json();
-      const injuryData = await injuryRes.json();
-      const fixtureData = await fixtureRes.json();
+      const injMap = {};
+      (iData.injuries || []).forEach(i => { injMap[i.playerId] = i; });
 
-      const injuryMap = {};
-      (injuryData.injuries || []).forEach(i => { injuryMap[i.playerId] = i; });
-
-      const processedPlayers = (squadData.players || []).map(p => ({
+      const pl = (sData.players || []).map(p => ({
         id: p.id,
         name: p.name,
         number: p.number,
-        position: p.position,
-        positionKey: getPositionKey(p.position),
+        posKey: posKey(p.position),
         photo: p.photo,
-        injured: injuryMap[p.id]?.type === "Injury",
-        suspended: injuryMap[p.id]?.type === "Suspension",
-        injuryReason: injuryMap[p.id]?.reason || null,
+        injured: injMap[p.id]?.type === "Injury",
+        suspended: injMap[p.id]?.type === "Suspension",
+        injNote: injMap[p.id]?.reason || null,
       }));
-
-      setPlayers(processedPlayers);
-
-      if (fixtureData.fixture) {
-        setNextMatch({
-          kickoff: new Date(fixtureData.fixture.kickoff),
-          opponent: fixtureData.fixture.opponent,
-          venue: fixtureData.fixture.venue,
-        });
-      }
-
-      VoteStore.seedDemo(teamKey, processedPlayers);
-
-    } catch (e) {
-      setError("API bağlantısı kurulamadı. API key'ini kontrol et.");
+      setPlayers(pl);
+      setFixtures(fData.fixtures || []);
+    } catch(e) {
+      showToast("API bağlantı hatası", "err");
     }
-
     setLoading(false);
   }
 
-  function selectTeam(key) {
-    setSelectedTeam(key);
-    setTab("vote");
+  function openBesiktas() {
     setPage("match");
-    loadTeamData(key);
+    setTab("builder");
+    setLineup({});
+    loadData();
   }
 
-  function showToast(msg, type) {
+  function showToast(msg, type="ok") {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 2500);
+    setTimeout(() => setToast(null), 2000);
   }
 
-  const cfg = selectedTeam ? TEAM_CONFIG[selectedTeam] : null;
-  const locked = nextMatch ? nextMatch.kickoff <= new Date() : false;
+  // Drag handlers
+  function onDragStart(player) {
+    if (player.injured || player.suspended) return;
+    setDragPlayer(player);
+  }
 
+  function onDragEnd() {
+    setDragPlayer(null);
+    setOverSlot(null);
+  }
+
+  function onDrop(slotDef) {
+    if (!dragPlayer) return;
+    if (!slotDef.accepts.includes(dragPlayer.posKey)) {
+      showToast("Bu pozisyona uygun değil", "err");
+      setDragPlayer(null);
+      setOverSlot(null);
+      return;
+    }
+    setLineup(prev => {
+      const next = { ...prev };
+      // Remove player from any existing slot
+      Object.keys(next).forEach(k => {
+        if (next[k]?.id === dragPlayer.id) delete next[k];
+      });
+      next[slotDef.slot] = dragPlayer;
+      return next;
+    });
+    setDragPlayer(null);
+    setOverSlot(null);
+  }
+
+  function removeFromSlot(slot) {
+    setLineup(prev => { const n={...prev}; delete n[slot]; return n; });
+  }
+
+  function submitVote() {
+    // Save to sessionStorage as global votes (simulate multi-user)
+    const stored = (() => { try { return JSON.parse(sessionStorage.getItem("bjk_votes")||"{}"); } catch { return {}; } })();
+    const updated = { ...stored };
+    Object.entries(lineup).forEach(([slot, player]) => {
+      if (!updated[slot]) updated[slot] = {};
+      updated[slot][player.id] = (updated[slot][player.id] || 0) + 1;
+    });
+    try { sessionStorage.setItem("bjk_votes", JSON.stringify(updated)); } catch {}
+    setGlobalVotes(updated);
+    setHasVoted(true);
+    setPage("results");
+  }
+
+  function loadResults() {
+    try {
+      const stored = JSON.parse(sessionStorage.getItem("bjk_votes")||"{}");
+      setGlobalVotes(stored);
+    } catch {}
+  }
+
+  const placedIds = new Set(Object.values(lineup).map(p => p?.id));
+  const formation_slots = FORMATIONS[formation];
+  const isComplete = Object.keys(lineup).length === formation_slots.length;
+
+  // Group players
+  const grouped = {
+    "KALECI": players.filter(p => p.posKey === "GK"),
+    "DEFANS": players.filter(p => p.posKey === "CB"),
+    "ORTA SAHA": players.filter(p => p.posKey === "CM"),
+    "FORVET": players.filter(p => p.posKey === "ST"),
+  };
+
+  // ── HOME ──
   if (page === "home") {
+    const teamList = [
+      { key:"besiktas", name:"BEŞİKTAŞ", logo:"https://media.api-sports.io/football/teams/549.png", accent:"#E0E0E0" },
+      { key:"fenerbahce", name:"FENERBAHÇE", logo:"https://media.api-sports.io/football/teams/611.png", accent:"#FFCB00" },
+      { key:"galatasaray", name:"GALATASARAY", logo:"https://media.api-sports.io/football/teams/645.png", accent:"#FF8C00" },
+      { key:"trabzonspor", name:"TRABZONSPOR", logo:"https://media.api-sports.io/football/teams/998.png", accent:"#00BFFF" },
+    ];
     return (
       <div className="app">
         <div className="home">
-          <div className="home-eyebrow">SÜPER LİG · 2025 / 26</div>
-          <div className="home-title">Fan<span>/</span>XI</div>
-          <div className="home-sub">BAŞLANGIÇ 11'İNİ SEÇ · OY VER</div>
+          <div className="home-eyebrow">SÜPER LİG · 2024/25</div>
+          <div className="home-title">FAN<span>/</span>XI</div>
+          <div className="home-sub">BAŞLANGIÇ 11'İNİ OLUŞTUR</div>
           <div className="team-grid">
-            {Object.entries(TEAM_CONFIG).map(([key, t]) => (
-              <div key={key} className="team-card" onClick={() => selectTeam(key)}>
-                <div className="team-card-left">
-                  <img className="team-card-logo" src={t.logo} alt={t.name} />
+            {teamList.map(t => (
+              <div key={t.key} className="team-card" onClick={t.key==="besiktas" ? openBesiktas : undefined}
+                style={t.key!=="besiktas" ? {opacity:.4,cursor:"not-allowed"} : {}}>
+                <div className="tc-left">
+                  <img className="tc-logo" src={t.logo} alt={t.name} />
                   <div>
-                    <div className="team-card-name">{t.name}</div>
-                    <div className="team-card-meta">Kadroyu gör · Oy ver</div>
+                    <div className="tc-name">{t.name}</div>
+                    <div className="tc-meta">{t.key==="besiktas" ? "Kadroyu oluştur →" : "Yakında"}</div>
                   </div>
                 </div>
-                <div className="team-card-arrow">→</div>
+                <div className="tc-arrow">→</div>
               </div>
             ))}
           </div>
@@ -459,245 +412,201 @@ export default function FanLineupApp() {
     );
   }
 
-  return (
-    <div className="app">
-      <div className="header">
-        <button className="back-btn" onClick={() => setPage("home")}>← Geri</button>
-        <div className="header-center">
-          <h2 style={{ color: cfg.accent }}>{cfg.name}</h2>
-          <p>{nextMatch ? `vs ${nextMatch.opponent} · ${nextMatch.venue}` : "Maç yükleniyor..."}</p>
+  // ── RESULTS PAGE ──
+  if (page === "results") {
+    const slots = FORMATIONS[formation];
+    return (
+      <div className="app">
+        <div className="hdr">
+          <button className="back-btn" onClick={() => { setPage("match"); setHasVoted(false); setLineup({}); loadResults(); }}>← Kadro</button>
+          <div className="hdr-center"><h2>FAN XI SONUÇLARI</h2><p>BEŞİKTAŞ · {formation}</p></div>
+          <img className="hdr-logo" src={BJK.logo} alt="BJK" />
         </div>
-        <div className="countdown">
-          <div className="countdown-val" style={{ color: locked ? "#ff6b6b" : cfg.accent }}>
-            {nextMatch ? countdown : "—"}
-          </div>
-          <div className="countdown-lbl">{locked ? "Kapandı" : "KO"}</div>
-        </div>
-      </div>
-
-      <div className="tabs">
-        {[["vote", "⚽ Oy Ver"], ["results", "🏆 Fan XI"]].map(([t, lbl]) => (
-          <button key={t} className={`tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>{lbl}</button>
-        ))}
-      </div>
-
-      {loading && (
-        <div className="loading">
-          <div className="spinner" />
-          <p>Kadro yükleniyor...</p>
-        </div>
-      )}
-
-      {error && (
-        <div style={{ margin: 20, padding: 16, background: "rgba(220,50,50,.1)", border: "1px solid rgba(220,50,50,.3)", borderRadius: 10, color: "#ff6b6b", fontFamily: "Space Mono,monospace", fontSize: 12 }}>
-          ⚠️ {error}
-        </div>
-      )}
-
-      {tab === "vote" && !loading && !error && (
-        <div style={{display:"flex",gap:6,justifyContent:"center",padding:"0 16px 10px",flexWrap:"wrap"}}>
-          {Object.keys(FORMATIONS).map(f => (
-            <button key={f} onClick={() => setFormation(f)} style={{fontFamily:"Space Mono,monospace",fontSize:10,letterSpacing:1,padding:"5px 12px",borderRadius:6,border:formation===f?"1px solid rgba(255,255,255,.3)":"1px solid rgba(255,255,255,.1)",background:formation===f?"rgba(255,255,255,.1)":"transparent",color:formation===f?"#fff":"rgba(255,255,255,.35)",cursor:"pointer"}}>{f}</button>
-          ))}
-        </div>
-      )}
-      {!loading && !error && tab === "vote" && (
-        <div className="pitch-wrap">
-          <div className="formation-lbl">{formation}</div>
-          {locked && <div className="lock-banner">🔒 Oylama kilitlendi — Maç başladı</div>}
-          <div className="pitch">
-            <div className="pitch-bg" />
-            <div className="pitch-lines" />
-            <div className="pitch-mid" />
-            <div className="pitch-circle" />
-            <div className="pitch-pen-t" />
-            <div className="pitch-pen-b" />
-            <div className="pitch-slots">
-              {FORMATIONS[formation].map(pos => {
-                const candidates = getCandidatesForSlot(players, pos.slot);
-                const winnerId = VoteStore.getWinner(selectedTeam, pos.slot);
-                const winner = candidates.find(p => String(p.id) === String(winnerId));
-                const userVoteId = VoteStore.getUserVote(selectedTeam, pos.slot);
-                const userVotedPlayer = candidates.find(p => String(p.id) === String(userVoteId));
-                const display = userVotedPlayer || winner;
-                const total = VoteStore.getTotal(selectedTeam, pos.slot);
-                const wVotes = winnerId ? (VoteStore.getSlotVotes(selectedTeam, pos.slot)[winnerId] || 0) : 0;
-                const pct = total > 0 ? Math.round(wVotes / total * 100) : 0;
-
-                return (
-                  <div
-                    key={pos.slot}
-                    className="pitch-slot"
-                    style={{ gridRow: 6 - pos.row, gridColumn: pos.col }}
-                    onClick={() => !locked && setModal(pos)}
-                  >
-                    <div className="slot-bubble">
-                      <div
-                        className={`slot-avatar ${userVoteId ? "voted" : ""} ${winner ? "has-winner" : ""}`}
-                        style={{ background: cfg.gradient }}
-                      >
-                        {display && (
-                          <div
-                            className="slot-ring"
-                            style={{ background: `conic-gradient(${cfg.accent} ${pct * 3.6}deg, transparent ${pct * 3.6}deg)` }}
-                          />
-                        )}
-                        {display?.photo
-                          ? <img src={display.photo} alt={display.name} style={{ width:"100%", height:"100%", objectFit:"cover", position:"relative", zIndex:1, borderRadius:"50%" }} onError={e => { e.target.style.display="none"; e.target.nextSibling.style.display="flex"; }} />
-                          : null}
-                        <span className="slot-initials" style={{ display: display?.photo ? "none" : "flex" }}>
-                          {display ? getInitials(display.name) : <span style={{ color: "rgba(255,255,255,.2)", fontSize: 14 }}>+</span>}
-                        </span>
-                      </div>
-                      <span className="slot-name">{display ? display.name.split(" ").pop() : pos.label}</span>
-                      <span className="slot-pos">{pos.label}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,.3)", fontFamily: "Space Mono,monospace", textAlign: "center" }}>
-            Pozisyona tıkla → Oyuncu seç → Oy ver
-          </div>
-        </div>
-      )}
-
-      {!loading && !error && tab === "results" && (
-        <div className="results">
-          <div className="results-title">Fan Starting XI</div>
-          <div className="results-sub">{cfg.name} · {formation}</div>
-          <div className="xi-grid">
-            {FORMATIONS[formation].map(pos => {
-              const candidates = getCandidatesForSlot(players, pos.slot);
-              const winnerId = VoteStore.getWinner(selectedTeam, pos.slot);
-              const winner = candidates.find(p => String(p.id) === String(winnerId));
-              const total = VoteStore.getTotal(selectedTeam, pos.slot);
-              const wVotes = winnerId ? (VoteStore.getSlotVotes(selectedTeam, pos.slot)[winnerId] || 0) : 0;
+        <div className="results-page">
+          <div className="results-title">FAN XI</div>
+          <div className="results-sub">TOPLAM OYLAR · {formation}</div>
+          <div className="results-pitch">
+            <div style={{position:"absolute",inset:0,border:"2px solid rgba(255,255,255,.2)",borderRadius:8,pointerEvents:"none"}}/>
+            <div style={{position:"absolute",left:0,right:0,top:"50%",height:1,background:"rgba(255,255,255,.2)",pointerEvents:"none"}}/>
+            {slots.map(pos => {
+              const slotVotes = globalVotes[pos.slot] || {};
+              const sorted = Object.entries(slotVotes).sort((a,b)=>b[1]-a[1]);
+              const total = sorted.reduce((s,[,v])=>s+v,0);
+              const winnerId = sorted[0]?.[0];
+              const winVotes = sorted[0]?.[1] || 0;
+              const pct = total > 0 ? Math.round(winVotes/total*100) : 0;
+              const winner = players.find(p => String(p.id) === String(winnerId));
+              const left = ((pos.col-1)/4*80+10) + "%";
+              const top = ((5-pos.row)/4*80+10) + "%";
               return (
-                <div key={pos.slot} className="xi-card">
-                  <div className="xi-avatar" style={{ background: cfg.gradient, border: `2px solid ${cfg.accent}` }}>
-                    {winner ? getInitials(winner.name) : "?"}
+                <div key={pos.slot} className="res-slot" style={{left, top}}>
+                  <div className={`res-avatar ${!winner?"res-empty":""}`}>
+                    {winner?.photo
+                      ? <img src={winner.photo} alt={winner.name} onError={e=>{e.target.style.display="none";}}/>
+                      : winner ? initials(winner.name) : pos.label
+                    }
                   </div>
-                  <div>
-                    <div className="xi-pos">{pos.label}</div>
-                    <div className="xi-name">{winner ? winner.name : "Oy yok"}</div>
-                    {winner && <div className="xi-votes">{wVotes}/{total} oy ({total > 0 ? Math.round(wVotes / total * 100) : 0}%)</div>}
-                  </div>
+                  {winner && <span className="res-name">{winner.name.split(" ").pop()}</span>}
+                  {winner && <span className="res-pct">%{pct}</span>}
+                  {!winner && <span className="res-name" style={{color:"rgba(255,255,255,.2)"}}>{pos.label}</span>}
                 </div>
               );
             })}
           </div>
+          <button className="results-vote-again" onClick={() => { setPage("match"); setHasVoted(false); setLineup({}); }}>
+            YENİDEN OY VER
+          </button>
+        </div>
+        {toast && <div className={`toast ${toast.type}`}>{toast.msg}</div>}
+      </div>
+    );
+  }
+
+  // ── MATCH PAGE ──
+  return (
+    <div className="app">
+      {/* Header */}
+      <div className="hdr">
+        <button className="back-btn" onClick={() => setPage("home")}>← Geri</button>
+        <div className="hdr-center">
+          <h2>BEŞİKTAŞ</h2>
+          <p>Kadro Oluştur</p>
+        </div>
+        <img className="hdr-logo" src={BJK.logo} alt="BJK" />
+      </div>
+
+      {/* Tabs */}
+      <div className="tabs">
+        <button className={`tab-btn ${tab==="builder"?"active":""}`} onClick={() => setTab("builder")}>⚽ KADRO</button>
+      </div>
+
+      {loading && (
+        <div className="loading">
+          <div className="spinner"/>
+          <p>Kadro yükleniyor...</p>
         </div>
       )}
 
-      {modal && (
-        <VoteModal
-          pos={modal}
-          players={players}
-          teamKey={selectedTeam}
-          cfg={cfg}
-          locked={locked}
-          onClose={() => setModal(null)}
-          onVoted={(ok) => {
-            setModal(null);
-            forceUpdate(n => n + 1);
-            showToast(ok ? "✅ Oyunuz kaydedildi!" : "⚠️ Bu pozisyon için zaten oy kullandınız", ok ? "success" : "error");
-          }}
-        />
+      {/* BUILDER TAB */}
+      {!loading && tab === "builder" && (
+        <div className="builder">
+          {/* LEFT: Pitch */}
+          <div className="pitch-side">
+            <div className="formation-bar">
+              {Object.keys(FORMATIONS).map(f => (
+                <button key={f} className={`f-btn ${formation===f?"active":""}`}
+                  onClick={() => { setFormation(f); setLineup({}); }}>
+                  {f}
+                </button>
+              ))}
+            </div>
+            <div className="pitch"
+              onDragOver={e => e.preventDefault()}
+            >
+              <div className="pitch-lines"/>
+              <div className="pitch-mid"/>
+              <div className="pitch-circle"/>
+              <div className="pitch-pen-t"/>
+              <div className="pitch-pen-b"/>
+              <div className="pitch-slots">
+                {formation_slots.map(pos => {
+                  const player = lineup[pos.slot];
+                  const isOver = overSlot === pos.slot;
+                  return (
+                    <div
+                      key={pos.slot}
+                      className="pitch-slot"
+                      style={{ gridRow: 6-pos.row, gridColumn: pos.col }}
+                    >
+                      <div
+                        className={`slot-drop ${isOver?"over":""} ${player?"filled":""}`}
+                        onDragOver={e => { e.preventDefault(); setOverSlot(pos.slot); }}
+                        onDragLeave={() => setOverSlot(null)}
+                        onDrop={() => onDrop(pos)}
+                      >
+                        {player ? (
+                          <div style={{position:"relative",display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                            <button className="remove-btn" onClick={() => removeFromSlot(pos.slot)}>×</button>
+                            <div className="slot-avatar">
+                              {player.photo
+                                ? <img src={player.photo} alt={player.name} onError={e=>{e.target.style.display="none";}}/>
+                                : initials(player.name)
+                              }
+                            </div>
+                            <span className="slot-label">{player.name.split(" ").pop()}</span>
+                            <span className="slot-pos-tag">{pos.label}</span>
+                          </div>
+                        ) : (
+                          <>
+                            <span style={{fontSize:9,color:"rgba(255,255,255,.2)",fontFamily:"Space Mono,monospace"}}>{pos.label}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT: Squad */}
+          <div className="squad-side">
+            <div className="squad-header">KADRO</div>
+            <div className="squad-list">
+              {Object.entries(grouped).map(([grp, pls]) => (
+                <div key={grp} className="squad-group">
+                  <div className="squad-group-label">{grp}</div>
+                  {pls.map(p => {
+                    const unavail = p.injured || p.suspended;
+                    const placed = placedIds.has(p.id);
+                    return (
+                      <div
+                        key={p.id}
+                        className={`squad-player ${unavail?"unavail":""} ${placed?"placed":""} ${dragPlayer?.id===p.id?"dragging":""}`}
+                        draggable={!unavail && !placed}
+                        onDragStart={() => onDragStart(p)}
+                        onDragEnd={onDragEnd}
+                      >
+                        <div className="sp-avatar">
+                          {p.photo
+                            ? <img src={p.photo} alt={p.name} onError={e=>{e.target.style.display="none";}}/>
+                            : initials(p.name)
+                          }
+                        </div>
+                        <div className="sp-info">
+                          <div className="sp-name">{p.name.split(" ").pop()}</div>
+                          <div style={{display:"flex",alignItems:"center",gap:3}}>
+                            <span className="sp-num">#{p.number}</span>
+                            {p.injured && <span className="sp-badge">🏥</span>}
+                            {p.suspended && <span className="sp-badge">🟨</span>}
+                            {placed && <span className="sp-badge">✓</span>}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM BAR */}
+      {!loading && tab === "builder" && (
+        <div className="confirm-bar">
+          <div className="confirm-count">{Object.keys(lineup).length} / {formation_slots.length} OYUNCU SEÇİLDİ</div>
+          <button
+            className="confirm-btn"
+            disabled={!isComplete}
+            onClick={submitVote}
+          >
+            KADROYU ONAYLA VE OY VER →
+          </button>
+        </div>
       )}
 
       {toast && <div className={`toast ${toast.type}`}>{toast.msg}</div>}
-    </div>
-  );
-}
-
-// ─── OY MODAL ────────────────────────────────────────────────────────────────
-function VoteModal({ pos, players, teamKey, cfg, locked, onClose, onVoted }) {
-  const [selected, setSelected] = useState(null);
-  const candidates = getCandidatesForSlot(players, pos.slot);
-  const userVoteId = VoteStore.getUserVote(teamKey, pos.slot);
-  const slotVotes = VoteStore.getSlotVotes(teamKey, pos.slot);
-  const total = Object.values(slotVotes).reduce((a, b) => a + b, 0);
-
-  function handleVote() {
-    if (!selected || locked || userVoteId) return;
-    const ok = VoteStore.cast(teamKey, pos.slot, selected);
-    onVoted(ok);
-  }
-
-  return (
-    <div className="overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal">
-        <div className="modal-head">
-          <div>
-            <div className="modal-title">{pos.label} Pozisyonu</div>
-            <div className="modal-sub">{total} oy · {candidates.filter(p => !p.injured && !p.suspended).length} uygun oyuncu</div>
-          </div>
-          <button className="modal-close" onClick={onClose}>✕</button>
-        </div>
-        <div className="modal-body">
-          {locked && (
-            <div style={{ textAlign: "center", padding: 10, color: "#ffa500", fontFamily: "Space Mono,monospace", fontSize: 11, marginBottom: 12, background: "rgba(255,140,0,.08)", borderRadius: 8, border: "1px solid rgba(255,140,0,.2)" }}>
-              🔒 Oylama kapandı
-            </div>
-          )}
-          {candidates.length === 0 && (
-            <div style={{ textAlign: "center", padding: 20, color: "rgba(255,255,255,.4)", fontSize: 13 }}>
-              Bu pozisyon için oyuncu bulunamadı
-            </div>
-          )}
-          {candidates.map(p => {
-            const pVotes = slotVotes[p.id] || 0;
-            const pPct = total > 0 ? Math.round(pVotes / total * 100) : 0;
-            const unavail = p.injured || p.suspended;
-            const isMe = String(userVoteId) === String(p.id);
-            const isSel = String(selected) === String(p.id);
-
-            return (
-              <div
-                key={p.id}
-                className={`player-opt ${unavail ? "disabled" : ""} ${isMe ? "my-vote" : ""} ${isSel && !isMe ? "selected" : ""}`}
-                onClick={() => !unavail && !locked && !userVoteId && setSelected(p.id)}
-              >
-                <div className="opt-avatar" style={{ background: cfg.gradient, overflow:"hidden", padding:0 }}>
-                  {p.photo
-                    ? <img src={p.photo} alt={p.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={e => { e.target.style.display="none"; e.target.parentNode.innerText=getInitials(p.name); }} />
-                    : getInitials(p.name)}
-                </div>
-                <div className="opt-info">
-                  <div className="opt-name">{p.name}</div>
-                  <div className="opt-meta">
-                    <span className="opt-num">#{p.number}</span>
-                    {p.injured && <span className="badge badge-inj">🏥 {p.injuryReason || "Sakat"}</span>}
-                    {p.suspended && <span className="badge badge-sus">🟨 Cezalı</span>}
-                    {isMe && <span className="badge-me">★ Oyunuz</span>}
-                  </div>
-                  <div className="bar-wrap">
-                    <div className="bar-info">
-                      <span className="bar-pct">%{pPct}</span>
-                      <span className="bar-pct">{pVotes} oy</span>
-                    </div>
-                    <div className="bar-track">
-                      <div className="bar-fill" style={{ width: `${pPct}%`, background: unavail ? "rgba(255,255,255,.15)" : cfg.accent }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-          {!userVoteId && !locked && (
-            <button
-              className="vote-btn"
-              style={{ background: cfg.accent, color: cfg.primary }}
-              onClick={handleVote}
-              disabled={!selected}
-            >
-              Oyu Kaydet
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
