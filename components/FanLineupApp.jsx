@@ -173,6 +173,12 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:#0a0a0d;color:
 .res-name{font-size:7px;font-weight:700;text-align:center;max-width:48px;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,.9);}
 .res-pct{font-family:'Space Mono',monospace;font-size:6px;background:rgba(0,0,0,.6);padding:1px 4px;border-radius:3px;color:#FFD700;}
 .res-vote-again{display:block;margin:0 auto;padding:10px 24px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;cursor:pointer;}
+.share-bar{display:flex;gap:8px;margin:0 auto 16px;max-width:380px;}
+.share-btn{flex:1;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:2px;cursor:pointer;transition:background .15s;}
+.share-btn:hover{background:rgba(255,255,255,.12);}
+.share-btn.primary{background:#fff;color:#000;border-color:#fff;}
+.share-btn.primary:hover{opacity:.85;}
+.shared-badge{display:inline-block;font-family:'Space Mono',monospace;font-size:8px;letter-spacing:2px;background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.3);color:#FFD700;padding:3px 8px;border-radius:4px;margin-bottom:12px;}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a22;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 16px;font-size:12px;z-index:9998;animation:tin .2s ease;white-space:nowrap;}
 @keyframes tin{from{transform:translateX(-50%) translateY(10px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
 .toast.ok{border-color:rgba(50,200,80,.4);color:#50dd70;}
@@ -190,6 +196,7 @@ export default function App() {
   const [touchDragPlayer, setTouchDragPlayer] = useState(null);
   const [toast, setToast] = useState(null);
   const [globalVotes, setGlobalVotes] = useState({});
+  const [sharedLineup, setSharedLineup] = useState(null);
 
   // dragRef holds { player, fromSlot } — avoids stale state in event handlers
   const dragRef = useRef(null);
@@ -314,8 +321,43 @@ export default function App() {
     });
     try { sessionStorage.setItem("bjk_votes", JSON.stringify(updated)); } catch {}
     setGlobalVotes(updated);
+    // Encode lineup into URL
+    const encoded = btoa(JSON.stringify(
+      Object.entries(lineup).map(([slot, p]) => ({ slot, id: p.id }))
+    ));
+    window.history.replaceState(null, "", "?lineup=" + encoded);
     setPage("results");
   }
+
+  function getShareUrl() {
+    const encoded = btoa(JSON.stringify(
+      Object.entries(lineup).map(([slot, p]) => ({ slot, id: p.id }))
+    ));
+    return window.location.origin + window.location.pathname + "?lineup=" + encoded;
+  }
+
+  function copyShareLink() {
+    try {
+      navigator.clipboard.writeText(getShareUrl());
+      showToast("Link kopyalandı!", "ok");
+    } catch {
+      showToast("Link kopyalanamadı", "err");
+    }
+  }
+
+  // Load shared lineup from URL on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get("lineup");
+    if (encoded) {
+      try {
+        const parsed = JSON.parse(atob(encoded));
+        setSharedLineup(parsed);
+        setPage("shared");
+        loadData(); // load players to resolve names/photos
+      } catch {}
+    }
+  }, []);
 
   const formation_slots = FORMATIONS[formation];
   const placedIds = new Set(Object.values(lineup).map(p => p?.id));
@@ -362,6 +404,73 @@ export default function App() {
     );
   }
 
+  // ── SHARED LINEUP PAGE ──
+  if (page === "shared") {
+    const slots = FORMATIONS[formation];
+    // Resolve shared players once players are loaded
+    const resolvedLineup = {};
+    if (sharedLineup && players.length > 0) {
+      sharedLineup.forEach(({ slot, id }) => {
+        const player = players.find(p => String(p.id) === String(id));
+        if (player) resolvedLineup[slot] = player;
+      });
+    }
+    return (
+      <div className="app">
+        <div className="hdr">
+          <button className="back-btn" onClick={()=>{setPage("home");window.history.replaceState(null,"",window.location.pathname);}}>← Ana Sayfa</button>
+          <div className="hdr-center"><h2>PAYLAŞILAN KADRO</h2><p>BEŞİKTAŞ</p></div>
+          <img className="hdr-logo" src={BJK.logo} alt="BJK"/>
+        </div>
+        <div className="results-wrap">
+          <div className="shared-badge">PAYLAŞILAN KADRO</div>
+          <div className="results-title">FAN XI</div>
+          <div className="results-sub">BEŞİKTAŞ · {formation}</div>
+          {players.length === 0 && (
+            <div className="loading"><div className="spinner"/><p>Kadro yükleniyor...</p></div>
+          )}
+          {players.length > 0 && (
+            <>
+              <div className="results-pitch">
+                <div style={{position:"absolute",inset:0,border:"2px solid rgba(255,255,255,.2)",borderRadius:8,pointerEvents:"none"}}/>
+                <div style={{position:"absolute",left:0,right:0,top:"50%",height:1,background:"rgba(255,255,255,.2)",pointerEvents:"none"}}/>
+                {slots.map(pos => {
+                  const player = resolvedLineup[pos.slot];
+                  return (
+                    <div key={pos.slot} className="res-slot"
+                      style={{left:((pos.col-1)/4*80+10)+"%", top:((5-pos.row)/4*80+10)+"%"}}>
+                      <div className="res-avatar">
+                        {player?.photo
+                          ? <img src={player.photo} alt={player.name} onError={e=>{e.target.style.display="none";}}/>
+                          : player ? initials(player.name) : <span style={{color:"rgba(255,255,255,.2)",fontSize:6}}>{pos.label}</span>}
+                      </div>
+                      <span className="res-name" style={{color:player?"#fff":"rgba(255,255,255,.2)"}}>
+                        {player ? player.name.split(" ").pop() : pos.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="share-bar">
+                <button className="share-btn primary" onClick={()=>{
+                  setLineup(resolvedLineup);
+                  setPage("match");
+                  window.history.replaceState(null,"",window.location.pathname);
+                }}>
+                  OY VER →
+                </button>
+                <button className="share-btn" onClick={copyShareLink}>
+                  🔗 PAYLAŞ
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+        {toast && <div className={`toast ${toast.type}`}>{toast.msg}</div>}
+      </div>
+    );
+  }
+
   // ── RESULTS ──
   if (page === "results") {
     return (
@@ -399,9 +508,14 @@ export default function App() {
               );
             })}
           </div>
-          <button className="res-vote-again" onClick={()=>{setPage("match");setLineup({});}}>
-            YENİDEN OY VER
-          </button>
+          <div className="share-bar">
+            <button className="share-btn primary" onClick={copyShareLink}>
+              🔗 LİNKİ PAYLAŞ
+            </button>
+            <button className="share-btn" onClick={()=>{setPage("match");setLineup({});window.history.replaceState(null,"",window.location.pathname);}}>
+              YENİDEN OY VER
+            </button>
+          </div>
         </div>
         {toast && <div className={`toast ${toast.type}`}>{toast.msg}</div>}
       </div>
